@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# 프로그래밍 과제 채점 결과 조회</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 600px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { margin: 0; font-size: 2.5rem; color: var(--primary); }
+        .search-box { background: var(--card); padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; gap: 10px; margin-bottom: 30px; }
+        input { flex: 1; padding: 15px; border: 2px solid var(--border); border-radius: 10px; font-size: 1.1rem; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); }
+        button { padding: 15px 30px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: background 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .result-card { background: var(--card); padding: 40px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid var(--border); }
+        .result-header h2 { margin: 0; font-size: 1.8rem; }
+        .total-score { font-size: 2rem; font-weight: bold; color: var(--primary); }
+        .score-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+        .score-item { background: #f1f5f9; padding: 15px; border-radius: 10px; }
+        .score-item label { display: block; font-size: 0.9rem; color: #64748b; margin-bottom: 5px; }
+        .score-item span { font-size: 1.2rem; font-weight: 600; }
+        .feedback-section h3 { margin-top: 0; color: var(--primary); }
+        .feedback-box { background: #eff6ff; padding: 20px; border-radius: 10px; border-left: 5px solid var(--primary); line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎯 과제 채점 결과</h1>
+        <p>이름을 입력하여 이번 주차 점수와 피드백을 확인하세요.</p>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="studentName" placeholder="예: 홍길동">
+        <button onclick="searchScore()">조회</button>
+    </div>
+
+    <div id="resultCard" class="result-card">
+        <div class="result-header">
+            <h2 id="resName">학생 이름</h2>
+            <div class="total-score" id="resTotal">00점</div>
+        </div>
+        
+        <div class="score-grid">
+            <div class="score-item"><label>1.과제1 (기능 구현)</label><span id="res1">0 / 10</span></div>
+            <div class="score-item"><label>2.과제2 (메시지 박스)</label><span id="res2">0 / 10</span></div>
+            <div class="score-item"><label>3.과제3 (점수/크기)</label><span id="res3">0 / 10</span></div>
+            <div class="score-item"><label>4.과제4 (게임오버)</label><span id="res4">0 / 10</span></div>
+            <div class="score-item"><label>5.컨트롤/변수 작명</label><span id="resVar">0 / 10</span></div>
+            <div class="score-item"><label>6.커밋 회수 (4회 이상)</label><span id="resCommit">0 / 10</span></div>
+            <div class="score-item" style="grid-column: span 2;"><label>7.README 내용 (기능설명, 기술설명, 스크린샷 4장 이상씩)</label><span id="resReadme">0 / 40</span></div>
+        </div>
+        
+        <div class="feedback-section">
+            <h3>📝 채점 피드백</h3>
+            <div class="feedback-box" id="resFeedback">피드백 내용이 여기에 표시됩니다.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let studentDb = {};
+
+    // 페이지 로드 시 data.json 파일을 불러옵니다.
+    window.onload = function() {
+        fetch('w2_grading_results.json')
+            .then(response => response.json())
+            .then(data => {
+                // 데이터를 이름 기반의 객체로 변환하여 검색 속도를 높입니다.
+                studentDb = data.reduce((acc, curr) => {
+                    acc[curr.name] = curr;
+                    return acc;
+                }, {});
+            })
+            .catch(error => {
+                console.error('데이터를 불러오는 중 오류 발생:', error);
+                alert('데이터 파일을 불러올 수 없습니다. data.json 파일이 같은 폴더에 있는지 확인하세요.');
+            });
+    };
+
+    function searchScore() {
+        const nameInput = document.getElementById('studentName');
+        const name = nameInput.value.trim();
+        const card = document.getElementById('resultCard');
+
+        if (!name) {
+            alert('이름을 입력해 주세요.');
+            return;
+        }
+
+        const student = studentDb[name];
+
+        if (student) {
+            // 데이터를 화면에 매핑
+            document.getElementById('resName').innerText = student.name + " 학생";
+            document.getElementById('resTotal').innerText = student.total + "점";
+            document.getElementById('res1').innerText = student.scores[0] + " / 10";
+            document.getElementById('res2').innerText = student.scores[1] + " / 10";
+            document.getElementById('res3').innerText = student.scores[2] + " / 10";
+            document.getElementById('res4').innerText = student.scores[3] + " / 10";
+            document.getElementById('resVar').innerText = student.scores[4] + " / 10";
+            document.getElementById('resCommit').innerText = student.scores[5] + " / 10";
+            document.getElementById('resReadme').innerText = student.scores[6] + " / 40";
+            document.getElementById('resFeedback').innerText = student.feedback;
+            
+            card.style.display = 'block'; // 결과 카드 표시
+            nameInput.value = ''; // 입력창 초기화
+        } else {
+            alert('등록되지 않은 이름입니다. 이름을 다시 확인해 주세요.');
+            card.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
