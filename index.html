@@ -37,7 +37,7 @@
     </div>
 
     <div class="search-box">
-        <input type="text" id="studentName" placeholder="예: 홍길동">
+        <input type="text" id="studentName" placeholder="예: 홍길동" onkeydown="if(event.key==='Enter') searchScore()">
         <button onclick="searchScore()">조회</button>
     </div>
 
