@@ -69,7 +69,7 @@
 
     // 페이지 로드 시 data.json 파일을 불러옵니다.
     window.onload = function() {
-        fetch('w2_grading_results.json')
+        fetch('./w2_grading_results.json')
             .then(response => response.json())
             .then(data => {
                 // 데이터를 이름 기반의 객체로 변환하여 검색 속도를 높입니다.
