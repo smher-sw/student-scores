@@ -72,7 +72,7 @@ button:hover{background:#1d4ed8;}
 let studentDb={};
 
 window.onload=function(){
-fetch('grading_result.json')
+fetch('w3_grading_result.json')
 .then(r=>r.json())
 .then(data=>{studentDb=data.reduce((acc,curr)=>{acc[curr.name]=curr;return acc;},{})})
 .catch(e=>{console.error('데이터를 불러오는 중 오류 발생:',e);alert('데이터 파일을 불러올 수 없습니다. grading_result.json 파일이 같은 폴더에 있는지 확인하세요.')});
