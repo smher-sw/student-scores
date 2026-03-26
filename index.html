@@ -11,7 +11,7 @@ body{font-family:'Pretendard',sans-serif;background-color:var(--bg);color:var(--
 .container{width:100%;max-width:600px;}
 .header{text-align:center;margin-bottom:40px;}
 .header h1{margin:0;font-size:2.5rem;color:var(--primary);}
-.search-box{background:var(--card);padding:30px;border-radius:16px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);display:flex;gap:10px;margin-bottom:30px;}
+.search-box{background:var(--card);padding:30px;border-radius:16px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);display:flex;gap:10px;margin-bottom:20px;}
 input{flex:1;padding:15px;border:2px solid var(--border);border-radius:10px;font-size:1.1rem;transition:border-color 0.2s;}
 input:focus{outline:none;border-color:var(--primary);}
 button{padding:15px 30px;background:var(--primary);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;font-size:1.1rem;transition:background 0.2s;}
@@ -27,6 +27,7 @@ button:hover{background:#1d4ed8;}
 .score-item span{font-size:1.2rem;font-weight:600;}
 .feedback-section h3{margin-top:0;color:var(--primary);}
 .feedback-box{background:#eff6ff;padding:20px;border-radius:10px;border-left:5px solid var(--primary);line-height:1.6;}
+select{width:100%;padding:12px;border-radius:10px;border:2px solid var(--border);font-size:1rem;margin-bottom:15px;}
 </style>
 </head>
 
@@ -36,8 +37,14 @@ button:hover{background:#1d4ed8;}
 
 <div class="header">
 <h1>🎯 과제 채점 결과</h1>
-<p>이름을 입력하여 이번 주차 점수와 피드백을 확인하세요.</p>
+<p>과제를 선택하고 이름을 입력하세요.</p>
 </div>
+
+<!-- ✅ 드롭다운 -->
+<select id="assignmentSelect" onchange="loadJson()">
+    <option value="SimpleCalculator_result.json">3월 26일 : SimpleCalculator</option>
+    <option value="EchoMessenger_result.json">3월 19일 : EchoMessenger</option>
+</select>
 
 <div class="search-box">
 <input type="text" id="studentName" placeholder="예: 홍길동">
@@ -69,42 +76,65 @@ button:hover{background:#1d4ed8;}
 </div>
 
 <script>
-let studentDb={};
+let studentDb = {};
 
-window.onload=function(){
-fetch('w3_grading_result.json')
-.then(r=>r.json())
-.then(data=>{studentDb=data.reduce((acc,curr)=>{acc[curr.name]=curr;return acc;},{})})
-.catch(e=>{console.error('데이터를 불러오는 중 오류 발생:',e);alert('데이터 파일을 불러올 수 없습니다. grading_result.json 파일이 같은 폴더에 있는지 확인하세요.')});
+window.onload = function () {
+    loadJson(); // 기본 JSON 로딩
 
-document.getElementById('studentName').addEventListener('keydown',e=>{if(e.key==='Enter')searchScore();});
+    document.getElementById('studentName')
+        .addEventListener('keydown', e => {
+            if (e.key === 'Enter') searchScore();
+        });
 };
 
-function searchScore(){
-const nameInput=document.getElementById('studentName');
-const name=nameInput.value.trim();
-const card=document.getElementById('resultCard');
+// ✅ JSON 로딩 함수
+function loadJson() {
+    const fileName = document.getElementById('assignmentSelect').value;
 
-if(!name){alert('이름을 입력해 주세요.');return;}
-
-const student=studentDb[name];
-
-if(student){
-document.getElementById('resName').innerText=student.name+" 학생";
-document.getElementById('resTotal').innerText=student.total+"점";
-document.getElementById('res1').innerText=student.scores[0]+" / 10";
-document.getElementById('res2').innerText=student.scores[1]+" / 10";
-document.getElementById('res3').innerText=student.scores[2]+" / 10";
-document.getElementById('res4').innerText=student.scores[3]+" / 10";
-document.getElementById('resVar').innerText=student.scores[4]+" / 10";
-document.getElementById('resReadme').innerText=student.scores[5]+" / 50";
-document.getElementById('resFeedback').innerText=student.feedback;
-card.style.display='block';
-nameInput.value='';
-}else{
-alert('등록되지 않은 이름입니다. 이름을 다시 확인해 주세요.');
-card.style.display='none';
+    fetch(fileName, { cache: "no-store" })
+        .then(r => r.json())
+        .then(data => {
+            studentDb = data.reduce((acc, curr) => {
+                acc[curr.name] = curr;
+                return acc;
+            }, {});
+        })
+        .catch(e => {
+            console.error('데이터 로딩 오류:', e);
+            alert(fileName + ' 파일을 불러올 수 없습니다.');
+        });
 }
+
+// ✅ 검색 함수
+function searchScore() {
+    const nameInput = document.getElementById('studentName');
+    const name = nameInput.value.trim();
+    const card = document.getElementById('resultCard');
+
+    if (!name) {
+        alert('이름을 입력해 주세요.');
+        return;
+    }
+
+    const student = studentDb[name];
+
+    if (student) {
+        document.getElementById('resName').innerText = student.name + " 학생";
+        document.getElementById('resTotal').innerText = student.total + "점";
+        document.getElementById('res1').innerText = student.scores[0] + " / 10";
+        document.getElementById('res2').innerText = student.scores[1] + " / 10";
+        document.getElementById('res3').innerText = student.scores[2] + " / 10";
+        document.getElementById('res4').innerText = student.scores[3] + " / 10";
+        document.getElementById('resVar').innerText = student.scores[4] + " / 10";
+        document.getElementById('resReadme').innerText = student.scores[5] + " / 50";
+        document.getElementById('resFeedback').innerText = student.feedback;
+
+        card.style.display = 'block';
+        nameInput.value = '';
+    } else {
+        alert('등록되지 않은 이름입니다.');
+        card.style.display = 'none';
+    }
 }
 </script>
 
