@@ -3,31 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C# 프로그래밍 과제 채점 결과 조회</title>
+<title>중간고사 성적 확인</title>
 
 <style>
 :root{--primary:#2563eb;--bg:#f8fafc;--card:#ffffff;--text:#1e293b;--border:#e2e8f0;}
 body{font-family:'Pretendard',sans-serif;background-color:var(--bg);color:var(--text);margin:0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:100vh;}
-.container{width:100%;max-width:600px;}
+.container{width:100%;max-width:500px;}
 .header{text-align:center;margin-bottom:40px;}
-.header h1{margin:0;font-size:2.5rem;color:var(--primary);}
+.header h1{margin:0;font-size:2.2rem;color:var(--primary);}
 .search-box{background:var(--card);padding:30px;border-radius:16px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);display:flex;gap:10px;margin-bottom:20px;}
-input{flex:1;padding:15px;border:2px solid var(--border);border-radius:10px;font-size:1.1rem;transition:border-color 0.2s;}
-input:focus{outline:none;border-color:var(--primary);}
-button{padding:15px 30px;background:var(--primary);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;font-size:1.1rem;transition:background 0.2s;}
-button:hover{background:#1d4ed8;}
-.result-card{background:var(--card);padding:40px;border-radius:16px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);display:none;animation:fadeIn 0.5s;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-.result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;padding-bottom:15px;border-bottom:2px solid var(--border);}
-.result-header h2{margin:0;font-size:1.8rem;}
-.total-score{font-size:2rem;font-weight:bold;color:var(--primary);}
-.score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:30px;}
-.score-item{background:#f1f5f9;padding:15px;border-radius:10px;}
-.score-item label{display:block;font-size:0.9rem;color:#64748b;margin-bottom:5px;}
-.score-item span{font-size:1.2rem;font-weight:600;}
-.feedback-section h3{margin-top:0;color:var(--primary);}
-.feedback-box{background:#eff6ff;padding:20px;border-radius:10px;border-left:5px solid var(--primary);line-height:1.6;}
-select{width:100%;padding:12px;border-radius:10px;border:2px solid var(--border);font-size:1rem;margin-bottom:15px;}
+input{flex:1;padding:15px;border:2px solid var(--border);border-radius:10px;font-size:1.1rem;}
+button{padding:15px 25px;background:var(--primary);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;}
+.result-card{background:var(--card);padding:40px;border-radius:16px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);display:none;text-align:center;}
+.score{font-size:3rem;font-weight:bold;color:var(--primary);margin-top:20px;}
 </style>
 </head>
 
@@ -36,15 +24,9 @@ select{width:100%;padding:12px;border-radius:10px;border:2px solid var(--border)
 <div class="container">
 
 <div class="header">
-<h1>🎯 과제 채점 결과</h1>
-<p>과제를 선택하고 이름을 입력하세요.</p>
+<h1>📊 중간고사 성적 확인</h1>
+<p>이름을 입력하면 점수를 확인할 수 있습니다.</p>
 </div>
-
-<!-- ✅ 드롭다운 -->
-<select id="assignmentSelect" onchange="loadJson()">
-		<option value="FileCompare_result.json">4월 16일 : FileCompare</option>
-        <option value="BurgerKiosk_result.json">4월 9일 : BurgerKiosk</option>
-</select>
 
 <div class="search-box">
 <input type="text" id="studentName" placeholder="예: 홍길동">
@@ -52,34 +34,17 @@ select{width:100%;padding:12px;border-radius:10px;border:2px solid var(--border)
 </div>
 
 <div id="resultCard" class="result-card">
-
-<div class="result-header">
-<h2 id="resName">학생 이름</h2>
-<div class="total-score" id="resTotal">00점</div>
+<h2 id="resName">이름</h2>
+<div class="score" id="resScore">0점</div>
 </div>
 
-<div class="score-grid">
-<div class="score-item"><label>(1) 과제1 코딩과 테스트</label><span id="res1">0 / 10</span></div>
-<div class="score-item"><label>(2) 과제2 코딩과 테스트</label><span id="res2">0 / 10</span></div>
-<div class="score-item"><label>(3) 과제3 코딩과 테스트</label><span id="res3">0 / 10</span></div>
-<div class="score-item"><label>(4) 과제4 코딩과 테스트</label><span id="res4">0 / 10</span></div>
-<div class="score-item"><label>(5) 컨트롤과 변수 작명</label><span id="resVar">0 / 10</span></div>
-<div class="score-item"><label>(6) README 작성</label><span id="resReadme">0 / 50</span></div>
-</div>
-
-<div class="feedback-section">
-<h3>📝 채점 피드백</h3>
-<div class="feedback-box" id="resFeedback">피드백 내용이 여기에 표시됩니다.</div>
-</div>
-
-</div>
 </div>
 
 <script>
 let studentDb = {};
 
 window.onload = function () {
-    loadJson(); // 기본 JSON 로딩
+    loadJson();
 
     document.getElementById('studentName')
         .addEventListener('keydown', e => {
@@ -87,25 +52,23 @@ window.onload = function () {
         });
 };
 
-// ✅ JSON 로딩 함수
+// ✅ score.json 로딩
 function loadJson() {
-    const fileName = document.getElementById('assignmentSelect').value;
-
-    fetch(fileName, { cache: "no-store" })
+    fetch("score.json", { cache: "no-store" })
         .then(r => r.json())
         .then(data => {
             studentDb = data.reduce((acc, curr) => {
-                acc[curr.name] = curr;
+                acc[curr.name] = curr.score;
                 return acc;
             }, {});
         })
         .catch(e => {
             console.error('데이터 로딩 오류:', e);
-            alert(fileName + ' 파일을 불러올 수 없습니다.');
+            alert('score.json 파일을 불러올 수 없습니다.');
         });
 }
 
-// ✅ 검색 함수
+// ✅ 검색
 function searchScore() {
     const nameInput = document.getElementById('studentName');
     const name = nameInput.value.trim();
@@ -116,21 +79,12 @@ function searchScore() {
         return;
     }
 
-    const student = studentDb[name];
+    const score = studentDb[name];
 
-    if (student) {
-        document.getElementById('resName').innerText = student.name + " 학생";
-        document.getElementById('resTotal').innerText = student.total + "점";
-        document.getElementById('res1').innerText = student.scores[0] + " / 10";
-        document.getElementById('res2').innerText = student.scores[1] + " / 10";
-        document.getElementById('res3').innerText = student.scores[2] + " / 10";
-        document.getElementById('res4').innerText = student.scores[3] + " / 10";
-        document.getElementById('resVar').innerText = student.scores[4] + " / 10";
-        document.getElementById('resReadme').innerText = student.scores[5] + " / 50";
-        document.getElementById('resFeedback').innerText = student.feedback;
-
+    if (score !== undefined) {
+        document.getElementById('resName').innerText = name + " 학생";
+        document.getElementById('resScore').innerText = score + "점";
         card.style.display = 'block';
-        nameInput.value = '';
     } else {
         alert('등록되지 않은 이름입니다.');
         card.style.display = 'none';
